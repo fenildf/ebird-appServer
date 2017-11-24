@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ebird.ebird_appServer.dao.ReviewDao">
+	
+	  <insert id="savaUserExcerciseDetail" parameterType="com.ebird.ebird_entity.entity.UserExerciseDetailEntity">
+	  	 INSERT INTO userExerciseDetail(
+				userId,
+				cardId,
+				pointId,
+				exerciseDate,
+				startExerciseTime,
+				endExerciseTime,
+				exerciseUpshot
+		)VALUES(
+				#{userId},
+				#{cardId},
+				#{pointId},
+				#{exerciseDate},
+				#{startExerciseTime},
+				#{endExerciseTime},
+				#{exerciseUpshot}
+		)
+	  
+	  </insert>
+	  
+	  <insert id="installErrorwarehouse" parameterType="java.lang.Integer">
+	  	  	 INSERT INTO errorwarehouse(
+				bookId,
+				pointId,
+				cardId,
+				isRight,
+				userId,
+				createTime
+			)VALUES(
+				#{bookId},
+				#{pointId},
+				#{cardId},
+				#{isRight},
+				#{userId},
+				NOW()
+			)
+	  </insert>
+	  
+	  <update id="updateErrorwarehouse" parameterType="com.ebird.ebird_entity.entity.ErrorWarehouseEntity">
+	  	   UPDATE errorwarehouse set
+				bookId =#{bookId},
+				pointId=#{pointId},
+				cardId=#{cardId},
+				isRight=#{isRight},
+				userId=#{userId},
+				updateTime=NOW()
+		   WHERE id=#{id}
+	  </update>
+	  
+	  <select id="findErrorwarehouse" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.entity.ErrorWarehouseEntity" >
+	      select * from errorwarehouse 
+	        where bookId=#{bookId}
+	           and pointId=#{pointId}
+	           and cardId=#{cardId}
+	           and userId=#{userId}
+	  </select>
+	  
+	  <delete id="delErrorwarehouse" parameterType="java.lang.Integer" >
+	     DELETE FROM errorwarehouse 
+                WHERE bookId=#{bookId}
+	               and cardId=#{cardId}
+	  </delete>
+	  
+	  
+	  <update id="updateLorePointExerciseDetail" parameterType="com.ebird.ebird_entity.dto.PointExerciseDetailDto">
+	  		 UPDATE pointExerciseDetail set
+			   nextExerciseTime=#{nextExerciseTime},
+			   exerciseCycle=#{exerciseCycle},
+			   conCorrectNumber=#{conCorrectNumber},
+			   conErrorNumber=#{conErrorNumber},
+			   lastExerciseDate=#{lastExerciseDate},
+			   exerciseNumber=#{exerciseNumber},
+			   correctNumber=#{correctNumber},
+			   skilled=#{skilled},
+			   state=#{state},
+			   errorNumber=#{errorNumber}
+		     where pointId=#{pointId} and userId=#{userId}
+	  </update>
+	  
+	  <select id="bookList" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.dto.BookDto">
+		  	SELECT 
+		  	  t.id,
+		  	  t.bookName,
+		  	  t.sharedType,
+		  	  t.updateDetailTime,
+		  	  t.createId
+		  	 FROM book  t ,userbook a
+		  	 WHERE t.id = a.bookId
+		  	    AND a.userId=#{userId}
+		  	    ORDER BY t.id ASC
+	  </select>
+	  
+	  
+	 <select id="reviewPointAll" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.dto.PonitDto">
+		  	SELECT t.id ,
+		  		t.pointName,
+		  		t.chapterId,
+		  		t.number,
+		  		t.bookId,
+		  		a.state
+		  	FROM
+			  point t ,
+			  pointExerciseDetail a
+			WHERE a.bookId=#{bookId}
+			  AND t.id = a.pointId 
+			  AND t.number>0
+			  AND a.userId=#{userId}
+			ORDER BY t.chapterSort,t.id asc 
+			<!-- a.nextExerciseTime, -->
+	  </select>
+	  
+	  <select id="reviewPoint" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.dto.PonitDto">
+		  	SELECT t.id ,
+		  		t.pointName,
+		  		t.chapterId,
+		  		t.number,
+		  		t.bookId,
+		  		a.state
+		  	FROM
+			  point t ,
+			  pointExerciseDetail a
+			WHERE a.bookId=#{bookId}
+				  <if test="chapterId !=null and chapterId !='' ">
+				      and t.chapterId in 
+				      <foreach collection="chapterId" item="id" index="index" open="(" close=")" separator=",">
+						#{id}
+					  </foreach>
+				  </if>
+			  AND t.id = a.pointId 
+			  AND t.number>0
+			  AND a.userId=#{userId}
+			  AND a.nextExerciseTime is not NULL
+			  AND a.nextExerciseTime <![CDATA[ <= ]]> NOW()
+			ORDER BY t.chapterSort, t.sort ,t.id asc 
+	  </select>
+	  
+	  
+	  <select id="reviewPointNull" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.dto.PonitDto">
+		  	SELECT t.id ,
+		  		t.pointName,
+		  		t.chapterId,
+		  		t.number,
+		  		t.bookId,
+		  		a.state
+		  	FROM
+			  point t ,
+			  pointExerciseDetail a
+			WHERE a.bookId=#{bookId}
+			  <if test="chapterId !=null and chapterId !='' ">
+			      and t.chapterId in 
+			      <foreach collection="chapterId" item="id" index="index" open="(" close=")" separator=",">
+					#{id}
+				  </foreach>
+			  </if>
+			  AND t.id = a.pointId 
+			  AND t.number>0
+			  AND a.userId=#{userId}
+			  AND a.nextExerciseTime is NULL
+			ORDER BY t.chapterSort, t.sort ,t.id  asc 
+	  </select>
+	  
+	  <select id="reviewPointBefore" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.dto.PonitDto">
+		  	SELECT t.id ,
+		  		t.pointName,
+		  		t.chapterId,
+		  		t.number,
+		  		t.bookId,
+		  		a.state
+		  	FROM
+			  point t ,
+			  pointExerciseDetail a
+			WHERE a.bookId=#{bookId}
+				  <if test="chapterId !=null and chapterId !='' ">
+				      and t.chapterId in 
+				      <foreach collection="chapterId" item="id" index="index" open="(" close=")" separator=",">
+						#{id}
+					  </foreach>
+				  </if>
+			  AND t.id = a.pointId 
+			  AND t.number>0
+			  AND a.userId=#{userId}
+			  AND a.nextExerciseTime <![CDATA[ > ]]> NOW()
+			ORDER BY t.chapterSort, t.sort,t.id asc 
+	  </select>
+	  
+	  <select id="roundCard" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.dto.CardDto">
+          select t.id,t.pointId ,b.pointName ,t.questionType,t.titleVoiceSrc,t.titleVoiceFlag,t.questionDescType,t.questionLongText,t.questionVoiceSrc,
+                t.difficultyLevel,t.titleText,t.questionText,t.questionImages,t.answers
+          from card t ,point b  
+          where  t.pointId=b.id and t.pointId=#{pointId} AND b.number>0
+       </select> 
+       
+       <select id="roundPoint" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.dto.PonitDto">
+	     SELECT t.id,t.pointName,t.number,t.chapterId ,t.bookId,a.state
+	         FROM point t ,pointExerciseDetail a
+	          WHERE t.id=a.pointId 
+	          AND t.number>0
+	          AND a.userId=#{userId}
+	          AND a.pointId not in
+				<foreach collection="pointIdArray" item="id" index="index" open="(" close=")" separator=",">
+					#{id,jdbcType=INTEGER}
+				</foreach>
+	   </select>
+	   
+	   <select id="roundPointByUserId" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.dto.PonitDto">
+	     SELECT t.id,t.pointName,t.number,t.chapterId ,t.bookId,a.state
+	         FROM point t ,pointExerciseDetail a
+	          WHERE t.id=a.pointId 
+	          AND t.number>0
+	          AND a.userId=#{userId}
+	   </select>
+	   
+	   <select id="getAuthByPointId" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.dto.PointExerciseDetailDto">
+	       SELECT * FROM pointexercisedetail t WHERE t.pointId=#{pointId} AND t.userId=#{userId}
+	   </select>
+	   
+	   <select id="getAuthByBookId" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.dto.PointExerciseDetailDto" >
+	        SELECT * FROM pointexercisedetail t WHERE t.bookId=#{bookId} AND t.userId=#{userId}
+	   </select>
+	  
+</mapper>

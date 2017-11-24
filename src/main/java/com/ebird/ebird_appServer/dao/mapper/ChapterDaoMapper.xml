@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ebird.ebird_appServer.dao.ChapterDao">
+	
+	<insert id="addChapter" parameterType="com.ebird.ebird_entity.entity.ChapterEntity"  useGeneratedKeys="true" keyProperty="id">
+	   INSERT INTO chapter(
+				chapterJson,
+				bookId
+		)VALUES(
+				#{chapterJson},
+				#{bookId}
+		)
+	</insert>
+	
+	<update id="editChapter" parameterType="com.ebird.ebird_entity.entity.ChapterEntity">
+			 UPDATE chapter set
+			   <if test="chapterJson !=null ">chapterJson=#{chapterJson},</if>
+			   <if test="updateTime !=null ">updateTime=#{updateTime},</if>
+			   <if test="updateId !=null  ">updateId=#{updateId}</if>
+		   WHERE bookId=#{bookId}
+	</update>
+	
+	<select id="findChapterPoint" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.dto.PonitDto">
+			SELECT t.id,t.pointName,t.chapterId,t.number ,t.bookId
+			 FROM point t 
+			 WHERE t.chapterId=#{chapterId} and t.bookId=#{bookId}
+	</select>
+	
+   <select id="bookChapterList" parameterType="java.lang.Integer" resultType="com.ebird.ebird_entity.dto.ChapterDto">
+			SELECT 
+			  a.chapterJson,a.bookId
+			FROM chapter a
+			WHERE a.bookId=#{bookId}
+	</select>
+     
+</mapper>
